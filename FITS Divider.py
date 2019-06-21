@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     cutout = hst_hdu['SCI'].data[y1-1:y2, x1-1:x2]
     print("cutout shape",cutout.shape)
-    print("moddel shape:", model_hdu[0].data.shape)
+    print("model shape:", model_hdu[0].data.shape)
 
     sky_value = float(model_hdu[0].header['2_SKY'].split("[")[1].split("]")[0])
     print("Sky-value in raw data was %.4f" % (sky_value))
@@ -58,13 +58,17 @@ if __name__ == "__main__":
 
     opt_depth = numpy.log(ratio)
 
+    diff = (cutout - sky_value) - (model_data - sky_value)
+
     output_hdu = fits.HDUList([
         fits.PrimaryHDU(),
         fits.ImageHDU(data=cutout, name="DATA"),
         fits.ImageHDU(data=model_data, name="MODEL"),
         fits.ImageHDU(data=ratio, name="RATIO"),
         fits.ImageHDU(data=opt_depth, name="OPTDEPTH"),
+        fits.ImageHDU(data=diff, name="DIFFERENCE"),
         fits.ImageHDU(data=model_outskirts.astype(numpy.int), name="OUTSKIRTS"),
+
     ])
     output_hdu.writeto(output_fn, overwrite=True)
 
