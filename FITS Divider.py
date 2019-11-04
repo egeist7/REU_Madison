@@ -31,7 +31,18 @@ if __name__ == "__main__":
     y2 = int(fit_section.split(":")[2].split("]")[0])
     print(x1,x2,y1,y2)
 
-    cutout = hst_hdu['SCI'].data[y1-1:y2, x1-1:x2]
+    try:
+        sci_data = hst_hdu['SCI'].data
+        sci_header = hst_hdu['SCI'].header
+    except:
+        sci_data = hst_hdu[0].data
+        sci_header = hst_hdu[0].header
+        
+    cutout = sci_data[y1-1:y2, x1-1:x2]
+
+    sci_header['CRPIX1'] -= x1
+    sci_header['CRPIX2'] -= y1
+    
     print("cutout shape",cutout.shape)
     print("model shape:", model_hdu[0].data.shape)
 
@@ -62,11 +73,11 @@ if __name__ == "__main__":
 
     output_hdu = fits.HDUList([
         fits.PrimaryHDU(),
-        fits.ImageHDU(data=cutout, name="DATA"),
-        fits.ImageHDU(data=model_data, name="MODEL"),
-        fits.ImageHDU(data=ratio, name="RATIO"),
-        fits.ImageHDU(data=opt_depth, name="OPTDEPTH"),
-        fits.ImageHDU(data=diff, name="DIFFERENCE"),
+        fits.ImageHDU(data=cutout, name="DATA", header=sci_header),
+        fits.ImageHDU(data=model_data, name="MODEL", header=sci_header),
+        fits.ImageHDU(data=ratio, name="RATIO", header=sci_header),
+        fits.ImageHDU(data=opt_depth, name="OPTDEPTH", header=sci_header),
+        fits.ImageHDU(data=diff, name="DIFFERENCE", header=sci_header),
         fits.ImageHDU(data=model_outskirts.astype(numpy.int), name="OUTSKIRTS"),
 
     ])
